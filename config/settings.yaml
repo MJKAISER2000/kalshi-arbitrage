@@ -1,0 +1,84 @@
+# Platform configuration. Secrets belong in .env, never here.
+# Values here are research defaults; none has been validated against realised P&L yet.
+
+mode:
+  # research | backtest | paper | live. Overridden by TRADING_MODE.
+  # Live additionally requires ENABLE_LIVE_TRADING=true and a passing live gate.
+  default: paper
+
+api:
+  environment: demo          # demo | production
+  tier: basic                # sets the rate-limit budget the client self-enforces
+  timeout_seconds: 10
+  max_retries: 3
+  backoff_base_seconds: 0.1  # exponential; 429 carries no Retry-After header
+  # Put both orderbook WebSocket sides on the yes-price scale. The API default is false
+  # today but will flip; setting it explicitly keeps stored data unambiguous.
+  use_yes_price: true
+
+fees:
+  # Fallbacks only. fee_type and fee_multiplier are read per series from the API.
+  default_multiplier: "0.07"
+  member_precision: "0.01"   # 0.01 non-direct, 0.0001 direct member
+  # Multiply modelled fees by this when screening, to absorb model error until the
+  # reconciliation harness has compared modelled fees against actual fills.
+  safety_factor: "1.10"
+
+edge:
+  # An opportunity must clear ALL of these to reach the opportunity table.
+  min_net_edge_dollars: "0.01"
+  min_net_edge_per_dollar_capital: "0.005"   # 0.5% on committed capital
+  min_executable_quantity: "1"
+  safety_margin_dollars: "0.02"              # required headroom above break-even
+  max_leg_count: 12                          # fees round per leg; long baskets rarely clear
+
+liquidity:
+  # Never size from top-of-book alone; walk the book to this depth.
+  max_book_levels: 20
+  # Consume at most this share of the depth available at a level.
+  max_participation_rate: "0.5"
+
+latency:
+  # Every opportunity is stress-tested at each of these round-trip assumptions.
+  stress_test_ms: [10, 50, 100, 250, 500, 1000, 2000]
+  # Flag as fragile if the edge does not survive this assumption.
+  assumed_ms: 250
+  max_quote_age_ms: 1000     # older quotes are rejected as STALE_QUOTE
+
+risk:
+  max_position_size_dollars: "100"
+  max_event_exposure_dollars: "250"
+  max_category_exposure_dollars: "500"
+  max_daily_loss_dollars: "50"
+  max_open_positions: 20
+  max_unhedged_exposure_dollars: "25"
+  max_capital_fraction_per_opportunity: "0.02"   # 2% per opportunity
+
+kill_switch:
+  # On uncertainty, stop trading.
+  daily_loss_dollars: "50"
+  api_error_count: 10
+  data_stale_seconds: 30
+  hedge_failure_count: 3
+  consecutive_rejected_orders: 5
+  max_clock_skew_seconds: 2
+
+live_gate:
+  # Live trading stays disabled until every one of these is satisfied.
+  min_paper_trades: 100
+  min_paper_days: 30
+  require_positive_net_pnl: true
+  require_positive_expectancy: true
+  max_paper_drawdown_dollars: "25"
+  max_hedge_failure_rate: "0.02"
+  max_data_error_rate: "0.01"
+  require_all_tests_passing: true
+
+storage:
+  snapshot_interval_seconds: 5
+  retain_raw_days: 90
+
+logging:
+  level: INFO
+  format: json          # structured logs; every opportunity must be reproducible
+  audit_trail: true

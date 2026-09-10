@@ -1,0 +1,48 @@
+# Private research - competitive findings, never published
+research/
+docs/private/
+
+# Secrets - never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*_rsa
+credentials/
+secrets/
+
+# Data - large, regenerable, and may contain account information
+data/raw/*
+data/processed/*
+data/historical/*
+data/database/*
+!data/**/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+*.parquet
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Logs
+logs/
+*.log
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+.hypothesis/
